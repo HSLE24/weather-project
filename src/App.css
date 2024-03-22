@@ -6,17 +6,29 @@ body {
 }
 
 .main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.App{
   text-align: center;
+  border: 2px solid white;
+  border-radius: 24px;
+  height: 600px;
+  width: 900px;
+  background-color: rgb(255,255,255,0.3);
 }
 
 .img-layer{
   margin-top: 5em;
 }
 .img-layer img{
-  height: 150px;
+  height: 300px;
   border-radius: 24px;
 }
 .img-layer p{
+  margin-top: 0.5em;
   font-weight: bold;
 }
 .info-group{
@@ -25,5 +37,9 @@ body {
 .sub-layer{
   margin-top: 1em;
   margin-bottom: 0.5em;
+  font-weight: bold;
+}
+.btn-group button{
+  color: white;
   font-weight: bold;
 }

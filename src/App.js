@@ -1,6 +1,9 @@
 import './App.css';
-import { useEffect, useState } from 'react'
-import ShowWeatherInfo from './components/ShowWeatherInfo'
+import { useEffect, useState } from 'react';
+import ShowWeatherInfo from './components/ShowWeatherInfo';
+import WeatherButton from './components/WeatherButton';
+import ShowCityImg from './components/ShowCityImg';
+import ClipLoader from "react-spinners/ClipLoader";
 
 const API_KEY = '35f10e1030da0742c9971b415b678c16'
 
@@ -27,23 +30,26 @@ const waitTime = 1;
 
 function App() {
 
-  const [selectedName, setName] = useState(null);
-  const [selectedTemp, setTemp] = useState(null);
-  const [selectedDesc, setDesc] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState('Now'); // 초기 선택 위치
   const [selectedImg, setSelectedImg] = useState(locationInfo['Now'].img[0]); 
+  const [mainTitle, setMainTitle] = useState('위치 권한을 허용해주세요');
+  const [loading, setLoading] = useState(false);
   
   const getRandomNumber=()=>{
     return Math.trunc(Math.random() * 6);
   }
 
+  const generateTitle=(name, temp, desc)=>{
+    let title = `${ name }` +": "+ `${((temp + 40) / 1.8 - 40).toFixed(2)}` + "℃, " + `${ temp }`+ "Ｆ, " + `${ desc }`;
+    setMainTitle(title);
+  }
+
+  const chooseImg=(loc)=>{
+    let num = getRandomNumber();
+    setSelectedImg(locationInfo[loc].img[num])
+  }
 
   const getLocation=()=>{
-
-    let num = getRandomNumber();
-
-    setSelectedImg(locationInfo['Now'].img[num])
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(showPosition);
     } else {
@@ -55,29 +61,28 @@ function App() {
     let lat = position.coords.latitude;
     let lon = position.coords.longitude;
 
-    getWeatherByCurrentLocation(lat, lon, 'Now');
+    locationInfo['Now'].lat = lat;
+    locationInfo['Now'].lon = lon;
   }
 
   const getWeatherByCurrentLocation= async (lat, lon, state)=>{
     const url = new URL(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}`);
+    setLoading(true);
 
     try{
       let response = await fetch(url);
       let APIdata = await response.json();
 
+      setLoading(false);
       console.log(`======${state}======`);
       console.log(APIdata);
 
-      locationInfo[state].lat = lat;
-      locationInfo[state].lon = lon;
       locationInfo[state].name = APIdata.name;
       locationInfo[state].temp = APIdata.main.temp
       locationInfo[state].desc = APIdata.weather[0].description
 
-      setName(locationInfo[state].name);
-      setTemp(locationInfo[state].temp);
-      setDesc(locationInfo[state].desc);
-
+      generateTitle(locationInfo[state].name, locationInfo[state].temp, locationInfo[state].desc);
+      
     }
     catch(error){
       console.log(error);
@@ -94,21 +99,25 @@ function App() {
 
       localStorage.setItem('standard', today);
 
+      chooseImg('Now');
       getLocation();
+      
+      getWeatherByCurrentLocation(locationInfo['Now'].lat, locationInfo['Now'].lon, 'Now');
     }
     else {
 
       if (isTimeDifferenceGreaterThanOneMinute(standard, today)){
         
         localStorage.setItem('standard', today);
-        getLocation();
 
+        chooseImg('Now');
+        getLocation();
+        
+        getWeatherByCurrentLocation(locationInfo['Now'].lat, locationInfo['Now'].lon, 'Now');
       }
       else {
         
-        setName(locationInfo['Now'].name);
-        setTemp(locationInfo['Now'].temp);
-        setDesc(locationInfo['Now'].desc);
+        generateTitle(locationInfo['Now'].name, locationInfo['Now'].temp, locationInfo['Now'].desc);
       }
     }
   }, [])
@@ -117,8 +126,10 @@ function App() {
 
     setSelectedLocation(loc);
     
-    let num = getRandomNumber();
-    setSelectedImg(locationInfo[loc].img[num])
+    chooseImg(loc);
+    if (loc === 'Now'){
+      getLocation();
+    }
 
     let lat = locationInfo[loc].lat;
     let lon = locationInfo[loc].lon;
@@ -144,9 +155,7 @@ function App() {
       }
       else {
 
-        setName(locationInfo[loc].name);
-        setTemp(locationInfo[loc].temp);
-        setDesc(locationInfo[loc].desc);
+        generateTitle(locationInfo[loc].name, locationInfo[loc].temp, locationInfo[loc].desc);
 
       }
     }
@@ -164,30 +173,22 @@ function App() {
     return minutes_difference >= waitTime;
   }
   
+  const cities=['Now', 'Seoul', 'Busan', 'Jeju', 'Daejeon']
 
   return (
-    <div className="App main">
-      <div className="img-layer" >
-        <img src={process.env.PUBLIC_URL + '/img/' + selectedImg + '.jpg'}></img>
-        <p>당신에게 {selectedImg}를 추천합니다.</p>
-      </div>
-      <ShowWeatherInfo name={ selectedName } temp={ selectedTemp } desc={ selectedDesc }></ShowWeatherInfo>
-      <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-          <input onClick={()=>changeLocation('Now')} type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked={selectedLocation === 'Now'}/>
-          <label class="btn btn-outline-primary" for="btnradio1">현재 위치</label>
-
-          <input onClick={()=>changeLocation('Seoul')} type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked={selectedLocation === 'Seoul'}/>
-          <label class="btn btn-outline-primary" for="btnradio2">서울시</label>
-
-          <input onClick={()=>changeLocation('Busan')} type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off" checked={selectedLocation === 'Busan'}/>
-          <label class="btn btn-outline-primary" for="btnradio3">부산시</label>
-
-          <input onClick={()=>changeLocation('Jeju')} type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off" checked={selectedLocation === 'Jeju'}/>
-          <label class="btn btn-outline-primary" for="btnradio4">제주시</label>
-
-          <input onClick={()=>changeLocation('Daejeon')} type="radio" class="btn-check" name="btnradio" id="btnradio5" autocomplete="off" checked={selectedLocation === 'Daejeon'}/>
-          <label class="btn btn-outline-primary" for="btnradio5">대전시</label>
-      </div>
+    <div className="main">
+      {loading ? (
+        <ClipLoader
+          color="#ffffff"
+          loading={loading}
+          size={150}
+        />) : (
+        <div className="App">
+          <ShowCityImg location={selectedLocation} cityImg={ selectedImg }></ShowCityImg>
+          <ShowWeatherInfo title={ mainTitle } ></ShowWeatherInfo>
+          <WeatherButton className="btn-group" location={selectedLocation} cities={cities} changeLocation={changeLocation}></WeatherButton>
+        </div>
+        )}
     </div>
   );
 }
