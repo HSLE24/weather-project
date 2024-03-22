@@ -32,7 +32,7 @@ function App() {
 
   const [selectedLocation, setSelectedLocation] = useState('Now'); // 초기 선택 위치
   const [selectedImg, setSelectedImg] = useState(locationInfo['Now'].img[0]); 
-  const [mainTitle, setMainTitle] = useState('위치 권한을 허용해주세요');
+  const [mainTitle, setMainTitle] = useState('당신의 지역의 날씨를 확인해보세요.');
   const [loading, setLoading] = useState(false);
   
   const getRandomNumber=()=>{
@@ -63,7 +63,9 @@ function App() {
 
     locationInfo['Now'].lat = lat;
     locationInfo['Now'].lon = lon;
-  }
+
+    getWeatherByCurrentLocation(lat, lon, 'Now');
+  }  
 
   const getWeatherByCurrentLocation= async (lat, lon, state)=>{
     const url = new URL(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}`);
@@ -101,8 +103,7 @@ function App() {
 
       chooseImg('Now');
       getLocation();
-      
-      getWeatherByCurrentLocation(locationInfo['Now'].lat, locationInfo['Now'].lon, 'Now');
+
     }
     else {
 
@@ -112,8 +113,6 @@ function App() {
 
         chooseImg('Now');
         getLocation();
-        
-        getWeatherByCurrentLocation(locationInfo['Now'].lat, locationInfo['Now'].lon, 'Now');
       }
       else {
         
@@ -125,11 +124,8 @@ function App() {
   const changeLocation=(loc)=>{
 
     setSelectedLocation(loc);
-    
+
     chooseImg(loc);
-    if (loc === 'Now'){
-      getLocation();
-    }
 
     let lat = locationInfo[loc].lat;
     let lon = locationInfo[loc].lon;

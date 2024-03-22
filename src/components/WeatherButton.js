@@ -8,7 +8,7 @@ const WeatherButton = ({ location, cities,changeLocation }) => {
 
         <ButtonGroup aria-label="Basic example">
             {cities.map((item, index) => (
-                <Button onClick={()=>changeLocation(item)} variant={ location === item ? 'dark': "outline-dark" }>{ item }</Button>
+                <Button key={index} onClick={()=>changeLocation(item)} variant={ location === item ? 'dark': "outline-dark" }>{ item }</Button>
             ))}
         </ButtonGroup>
     </div>
